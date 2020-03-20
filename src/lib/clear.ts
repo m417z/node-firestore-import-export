@@ -35,9 +35,9 @@ const clearCollections = async (startingRef: admin.firestore.Firestore | Firebas
     }
   } while (deadlineError || !collectionsSnapshot);
 
-  const collectionPromises: Array<Promise<any>> = [];
+  const collectionPromises: Array<() => Promise<any>> = [];
   collectionsSnapshot.map((collectionRef: FirebaseFirestore.CollectionReference) => {
-    collectionPromises.push(clearDocuments(collectionRef));
+    collectionPromises.push(() => clearDocuments(collectionRef));
   });
   return batchExecutor(collectionPromises);
 };
@@ -59,10 +59,10 @@ const clearDocuments = async (collectionRef: FirebaseFirestore.CollectionReferen
       }
     }
   } while (deadlineError || !allDocuments);
-  const documentPromises: Array<Promise<object>> = [];
+  const documentPromises: Array<() => Promise<object>> = [];
   allDocuments.forEach((docRef: DocumentReference) => {
-    documentPromises.push(clearCollections(docRef));
-    documentPromises.push(docRef.delete());
+    documentPromises.push(() => clearCollections(docRef));
+    documentPromises.push(() => docRef.delete());
   });
   return batchExecutor(documentPromises);
 };

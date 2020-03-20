@@ -93,19 +93,19 @@ describe('Firestore Helpers', () => {
       const toPromise = async function(x: any) {return x;};
 
       it('should resolve lists smaller then the batchsize', async () => {
-        const input = [toPromise(1), toPromise(2)];
+        const input = [() => toPromise(1), () => toPromise(2)];
         let actual = await batchExecutor(input, 3);
         expect(actual).to.eql([1,2]);
       });
 
       it('should resolve lists equal to the batchsize', async () => {
-        const input = [toPromise(1), toPromise(2)];
+        const input = [() => toPromise(1), () => toPromise(2)];
         let actual = await batchExecutor(input, 1);
         expect(actual).to.eql([1,2]);
       });
 
       it('should resolve lists larger then the batchsize', async () => {
-        const input = [toPromise(1), toPromise(2)];
+        const input = [() => toPromise(1), () => toPromise(2)];
         let actual = await batchExecutor(input, 1);
         expect(actual).to.eql([1,2]);
       });

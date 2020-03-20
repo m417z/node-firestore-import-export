@@ -8,12 +8,12 @@ const exportData = async (startingRef: admin.firestore.Firestore |
   FirebaseFirestore.DocumentReference |
   FirebaseFirestore.CollectionReference) => {
   if (isLikeDocument(startingRef)) {
-    const collectionsPromise = getCollections(startingRef);
-    let dataPromise: Promise<any>;
+    const collectionsPromise = () => getCollections(startingRef);
+    let dataPromise: () => Promise<any>;
     if (isRootOfDatabase(startingRef)) {
-      dataPromise = Promise.resolve({});
+      dataPromise = () => Promise.resolve({});
     } else {
-      dataPromise = (<FirebaseFirestore.DocumentReference>startingRef).get()
+      dataPromise = () => (<FirebaseFirestore.DocumentReference>startingRef).get()
         .then(snapshot => snapshot.data())
         .then(data => serializeSpecialTypes(data));
     }
@@ -43,10 +43,10 @@ const getCollections = async (startingRef: admin.firestore.Firestore | FirebaseF
   } while (deadlineError || !collectionsSnapshot);
 
   const collectionNames: Array<string> = [];
-  const collectionPromises: Array<Promise<any>> = [];
+  const collectionPromises: Array<() => Promise<any>> = [];
   collectionsSnapshot.map((collectionRef: FirebaseFirestore.CollectionReference) => {
     collectionNames.push(collectionRef.id);
-    collectionPromises.push(getDocuments(collectionRef));
+    collectionPromises.push(() => getDocuments(collectionRef));
   });
   const results = await batchExecutor(collectionPromises);
   const zipped: any = {};
@@ -74,9 +74,9 @@ const getDocuments = async (collectionRef: FirebaseFirestore.CollectionReference
     }
   } while (deadlineError || !allDocuments);
   const results: any = {};
-  const documentPromises: Array<Promise<object>> = [];
+  const documentPromises: Array<() => Promise<object>> = [];
   allDocuments.forEach((doc) => {
-    documentPromises.push(new Promise(async (resolve) => {
+    documentPromises.push(() => new Promise(async (resolve) => {
       const docSnapshot = await doc.get();
       const docDetails: any = {};
       if (docSnapshot.exists) {
